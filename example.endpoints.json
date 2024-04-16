@@ -1,0 +1,103 @@
+[
+  {
+    "endpoint": "/grpc-test",
+    "method": "GET",
+    "output_encoding": "json",
+    "backend": [
+      {
+        "host": [
+          "localhost:50051"
+        ],
+        "url_pattern": "/hero.HeroesService/GetAll",
+        "encoding": "json",
+        "extra_config": {
+          "backend/grpc": {}
+        }
+      }
+    ]
+  },
+  {
+    "endpoint": "/grpc-test3",
+    "method": "POST",
+    "output_encoding": "json",
+    "backend": [
+      {
+        "host": [
+          "localhost:50051"
+        ],
+        "url_pattern": "/hero.HeroesService/GetAll",
+        "encoding": "json",
+        "extra_config": {
+          "backend/grpc": {}
+        }
+      }
+    ]
+  },
+  {
+    "endpoint": "/grpc-test2",
+    "method": "POST",
+    "output_encoding": "json",
+    "backend": [
+      {
+        "host": [
+          "localhost:50051"
+        ],
+        "url_pattern": "/hero.HeroesService/FindOne",
+        "encoding": "json",
+        "method": "GET",
+        "extra_config": {
+          "backend/grpc": {}
+        }
+      }
+    ]
+  },
+  {
+    "@comment": "My method",
+    "endpoint": "/test3",
+    "method": "POST",
+    "output_encoding": "json-collection",
+    "input_headers": ["*"],
+    "input_query_strings": ["*"],
+    "extra_config": {
+      "modifier/lua-proxy": {
+        "sources": [
+          "./plugins/shared-objects/test.lua"
+        ],
+        "post": "your_lua_method_name(response.load())",
+        "live": true,
+        "allow_open_libs": true,
+        "skip_next": false
+      }
+    },
+    "backend": [
+      {
+        "host": ["http://test.local"],
+        "url_pattern": "/test",
+        "method": "POST"
+      }
+    ]
+  },
+  {
+    "endpoint": "/test2",
+    "output_encoding": "json",
+    "method": "POST",
+    "input_headers": ["*"],
+    "input_query_strings": ["*"],
+    "extra_config": {
+      "plugin/req-resp-modifier": {
+        "name": [
+          "example-plugin"
+        ],
+        "example-plugin": {
+          "key": "${KEY}"
+        }
+      }
+    },
+    "backend": [
+      {
+        "host": ["http://localhost:3000"],
+        "url_pattern": ""
+      }
+    ]
+  }
+]

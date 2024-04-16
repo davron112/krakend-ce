@@ -5,14 +5,14 @@ import (
 
 	"github.com/gin-gonic/gin"
 
-	botdetector "github.com/krakendio/krakend-botdetector/v2/gin"
-	httpsecure "github.com/krakendio/krakend-httpsecure/v2/gin"
-	lua "github.com/krakendio/krakend-lua/v2/router/gin"
-	opencensus "github.com/krakendio/krakend-opencensus/v2/router/gin"
-	"github.com/luraproject/lura/v2/config"
-	"github.com/luraproject/lura/v2/core"
-	luragin "github.com/luraproject/lura/v2/router/gin"
-	"github.com/luraproject/lura/v2/transport/http/server"
+	botdetector "api-gateway/v2/modules/krakend-botdetector/v2/gin"
+	httpsecure "api-gateway/v2/modules/krakend-httpsecure/v2/gin"
+	lua "api-gateway/v2/modules/krakend-lua/v2/router/gin"
+	opencensus "api-gateway/v2/modules/krakend-opencensus/v2/router/gin"
+	"api-gateway/v2/modules/lura/v2/config"
+	"api-gateway/v2/modules/lura/v2/core"
+	luragin "api-gateway/v2/modules/lura/v2/router/gin"
+	"api-gateway/v2/modules/lura/v2/transport/http/server"
 )
 
 // NewEngine creates a new gin engine with some default values and a secure middleware

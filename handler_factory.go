@@ -2,19 +2,18 @@ package krakend
 
 import (
 	"fmt"
-
-	botdetector "github.com/krakendio/krakend-botdetector/v2/gin"
-	jose "github.com/krakendio/krakend-jose/v2"
-	ginjose "github.com/krakendio/krakend-jose/v2/gin"
-	lua "github.com/krakendio/krakend-lua/v2/router/gin"
-	metrics "github.com/krakendio/krakend-metrics/v2/gin"
-	opencensus "github.com/krakendio/krakend-opencensus/v2/router/gin"
-	ratelimit "github.com/krakendio/krakend-ratelimit/v3/router/gin"
-	"github.com/luraproject/lura/v2/config"
-	"github.com/luraproject/lura/v2/logging"
-	"github.com/luraproject/lura/v2/proxy"
-	router "github.com/luraproject/lura/v2/router/gin"
-	"github.com/luraproject/lura/v2/transport/http/server"
+	botdetector "api-gateway/v2/modules/krakend-botdetector/v2/gin"
+	jose "api-gateway/v2/modules/krakend-jose/v2"
+	ginjose "api-gateway/v2/modules/krakend-jose/v2/gin"
+	lua "api-gateway/v2/modules/krakend-lua/v2/router/gin"
+	metrics "api-gateway/v2/modules/krakend-metrics/v2/gin"
+	opencensus "api-gateway/v2/modules/krakend-opencensus/v2/router/gin"
+	ratelimit "api-gateway/v2/modules/krakend-ratelimit/v3/router/gin"
+	"api-gateway/v2/modules/lura/v2/config"
+	"api-gateway/v2/modules/lura/v2/logging"
+	"api-gateway/v2/modules/lura/v2/proxy"
+	router "api-gateway/v2/modules/lura/v2/router/gin"
+	"api-gateway/v2/modules/lura/v2/transport/http/server"
 
 	"github.com/gin-gonic/gin"
 )

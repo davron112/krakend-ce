@@ -3,9 +3,9 @@
     "host":["http://localhost:8080"],
     "read_header_timeout":"200ms",
     "extra_config": {
-        "github_com/devopsfaith/krakend-gologging": {
+        "github_com/davron112/krakend-gologging": {
             "level": "CRITICAL",
-            "prefix": "[KRAKEND]"
+            "prefix": "[GATEWAY]"
         }
     },
     "endpoints": [{

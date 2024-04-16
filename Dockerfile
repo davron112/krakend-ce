@@ -12,12 +12,22 @@ RUN make build
 
 FROM alpine:${ALPINE_VERSION}
 
-LABEL maintainer="community@krakend.io"
+LABEL maintainer="davron211@gmail.com"
 
-RUN apk upgrade --no-cache --no-interactive && apk add --no-cache ca-certificates tzdata && \
+RUN apk add --no-cache ca-certificates tzdata && \
     adduser -u 1000 -S -D -H krakend && \
     mkdir /etc/krakend && \
     echo '{ "version": 3 }' > /etc/krakend/krakend.json
+
+RUN apk add --no-cache --virtual .build-deps \
+        gcc \
+        musl-dev \
+        openssl-dev \
+        lua5.1-dev \
+        luarocks5.1 \
+    && luarocks-5.1 install dkjson \
+    && luarocks-5.1 install lua-cjson \
+    && apk del .build-deps
 
 COPY --from=builder /app/krakend /usr/bin/krakend
 

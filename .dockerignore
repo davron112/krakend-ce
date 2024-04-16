@@ -1,0 +1,10 @@
+/vendor
+.idea/
+bench_res
+sec_scan
+krakend-alpine
+.DS_Store
+/krakend
+.env
+.git/
+

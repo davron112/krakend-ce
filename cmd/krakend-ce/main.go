@@ -1,19 +1,16 @@
-// Krakend-ce sets up a complete KrakenD API Gateway ready to serve
-
 package main
 
 import (
 	"context"
+	cmd "api-gateway/v2/modules/krakend-cobra/v2"
+	flexibleconfig "api-gateway/v2/modules/krakend-flexibleconfig/v2"
+	viper "api-gateway/v2/modules/krakend-viper/v2"
+	"api-gateway/v2/modules/lura/v2/config"
 	"log"
+	krakend "api-gateway/v2"
 	"os"
 	"os/signal"
 	"syscall"
-
-	krakend "github.com/krakendio/krakend-ce/v2"
-	cmd "github.com/krakendio/krakend-cobra/v2"
-	flexibleconfig "github.com/krakendio/krakend-flexibleconfig/v2"
-	viper "github.com/krakendio/krakend-viper/v2"
-	"github.com/luraproject/lura/v2/config"
 )
 
 const (
@@ -57,62 +54,51 @@ func main() {
 		})
 	}
 
-	commandsToLoad := []cmd.Command{
-		cmd.RunCommand,
-		cmd.CheckCommand,
-		cmd.PluginCommand,
-		cmd.VersionCommand,
-		cmd.AuditCommand,
-		krakend.NewTestPluginCmd(),
-	}
-
-	cmd.DefaultRoot = cmd.NewRoot(cmd.RootCommand, commandsToLoad...)
-	cmd.DefaultRoot.Cmd.CompletionOptions.DisableDefaultCmd = true
-
 	cmd.Execute(cfg, krakend.NewExecutor(ctx))
 }
 
 var aliases = map[string]string{
-	"github_com/devopsfaith/krakend/transport/http/server/handler":  "plugin/http-server",
-	"github.com/devopsfaith/krakend/transport/http/client/executor": "plugin/http-client",
-	"github.com/devopsfaith/krakend/proxy/plugin":                   "plugin/req-resp-modifier",
-	"github.com/devopsfaith/krakend/proxy":                          "proxy",
-	"github_com/luraproject/lura/router/gin":                        "router",
+	"github_com/davron112/lure/transport/http/server/handler":  "plugin/http-server",
+	"api-gateway/v2/modules/lura/transport/http/client/executor": "plugin/http-client",
+	"api-gateway/v2/modules/lura/proxy/plugin":                   "plugin/req-resp-modifier",
+	"api-gateway/v2/modules/lura/proxy":                          "proxy",
+	"github_com/davron112/lura/router/gin":                     "router",
 
-	"github.com/devopsfaith/krakend-httpcache":                "qos/http-cache",
-	"github.com/devopsfaith/krakend-circuitbreaker/gobreaker": "qos/circuit-breaker",
+	"api-gateway/v2/modules/krakend-httpcache":                "qos/http-cache",
+	"api-gateway/v2/modules/krakend-circuitbreaker/gobreaker": "qos/circuit-breaker",
 
-	"github.com/devopsfaith/krakend-oauth2-clientcredentials": "auth/client-credentials",
-	"github.com/devopsfaith/krakend-jose/validator":           "auth/validator",
-	"github.com/devopsfaith/krakend-jose/signer":              "auth/signer",
-	"github_com/devopsfaith/bloomfilter":                      "auth/revoker",
+	"api-gateway/v2/modules/krakend-oauth2-clientcredentials": "auth/client-credentials",
+	"api-gateway/v2/modules/krakend-jose/validator":           "auth/validator",
+	"api-gateway/v2/modules/krakend-jose/signer":              "auth/signer",
+	"github_com/davron112/bloomfilter":                      "auth/revoker",
 
-	"github_com/devopsfaith/krakend-botdetector": "security/bot-detector",
-	"github_com/devopsfaith/krakend-httpsecure":  "security/http",
-	"github_com/devopsfaith/krakend-cors":        "security/cors",
+	"github_com/davron112/krakend-botdetector": "security/bot-detector",
+	"github_com/davron112/krakend-httpsecure":  "security/http",
+	"github_com/davron112/krakend-cors":        "security/cors",
 
-	"github.com/devopsfaith/krakend-cel":        "validation/cel",
-	"github.com/devopsfaith/krakend-jsonschema": "validation/json-schema",
+	"api-gateway/v2/modules/krakend-cel":        "validation/cel",
+	"api-gateway/v2/modules/krakend-jsonschema": "validation/json-schema",
 
-	"github.com/devopsfaith/krakend-amqp/agent": "async/amqp",
+	"api-gateway/v2/modules/krakend-amqp/agent": "async/amqp",
 
-	"github.com/devopsfaith/krakend-amqp/consume":                  "backend/amqp/consumer",
-	"github.com/devopsfaith/krakend-amqp/produce":                  "backend/amqp/producer",
-	"github.com/devopsfaith/krakend-lambda":                        "backend/lambda",
-	"github.com/devopsfaith/krakend-pubsub/publisher":              "backend/pubsub/publisher",
-	"github.com/devopsfaith/krakend-pubsub/subscriber":             "backend/pubsub/subscriber",
-	"github.com/devopsfaith/krakend/transport/http/client/graphql": "backend/graphql",
-	"github.com/devopsfaith/krakend/http":                          "backend/http",
+	"api-gateway/v2/modules/krakend-amqp/consume":                  "backend/amqp/consumer",
+	"api-gateway/v2/modules/krakend-amqp/produce":                  "backend/amqp/producer",
+	"api-gateway/v2/modules/krakend-lambda":                        "backend/lambda",
+	"api-gateway/v2/modules/krakend-pubsub/publisher":              "backend/pubsub/publisher",
+	"api-gateway/v2/modules/krakend-pubsub/subscriber":             "backend/pubsub/subscriber",
+	"api-gateway/v2/modules/krakend/transport/http/client/graphql": "backend/graphql",
+	"api-gateway/v2/modules/grpc":                                  "backend/grpc",
+	"api-gateway/v2/modules/krakend/http":                          "backend/http",
 
-	"github_com/devopsfaith/krakend-gelf":       "telemetry/gelf",
-	"github_com/devopsfaith/krakend-gologging":  "telemetry/logging",
-	"github_com/devopsfaith/krakend-logstash":   "telemetry/logstash",
-	"github_com/devopsfaith/krakend-metrics":    "telemetry/metrics",
-	"github_com/letgoapp/krakend-influx":        "telemetry/influx",
-	"github_com/devopsfaith/krakend-opencensus": "telemetry/opencensus",
+	"github_com/davron112/krakend-gelf":       "telemetry/gelf",
+	"github_com/davron112/krakend-gologging":  "telemetry/logging",
+	"api-gateway/v2/modules/krakend-logstash":   "telemetry/logstash",
+	"github_com/davron112/krakend-metrics":    "telemetry/metrics",
+	"github_com/davron112/krakend-influx":     "telemetry/influx",
+	"github_com/davron112/krakend-opencensus": "telemetry/opencensus",
 
-	"github.com/devopsfaith/krakend-lua/router":        "modifier/lua-endpoint",
-	"github.com/devopsfaith/krakend-lua/proxy":         "modifier/lua-proxy",
-	"github.com/devopsfaith/krakend-lua/proxy/backend": "modifier/lua-backend",
-	"github.com/devopsfaith/krakend-martian":           "modifier/martian",
+	"api-gateway/v2/modules/krakend-lua/router":        "modifier/lua-endpoint",
+	"api-gateway/v2/modules/krakend-lua/proxy":         "modifier/lua-proxy",
+	"api-gateway/v2/modules/krakend-lua/proxy/backend": "modifier/lua-backend",
+	"api-gateway/v2/modules/krakend-martian":           "modifier/martian",
 }

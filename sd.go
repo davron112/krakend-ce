@@ -3,9 +3,9 @@ package krakend
 import (
 	"context"
 
-	"github.com/luraproject/lura/v2/config"
-	"github.com/luraproject/lura/v2/logging"
-	"github.com/luraproject/lura/v2/sd/dnssrv"
+	"api-gateway/v2/modules/lura/v2/config"
+	"api-gateway/v2/modules/lura/v2/logging"
+	"api-gateway/v2/modules/lura/v2/sd/dnssrv"
 )
 
 // RegisterSubscriberFactories registers all the available sd adaptors

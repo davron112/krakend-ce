@@ -1,0 +1,100 @@
+image: docker:latest
+
+services:
+  - docker:dind
+
+stages:
+  - build
+  - deploy
+  - cleanup
+
+.setup_ssh: &setup_ssh |
+  eval $(ssh-agent -s)
+  echo "$SSH_PRIVATE_KEY" | ssh-add -
+  mkdir -p ~/.ssh
+  ssh-keyscan -H $IP >> ~/.ssh/known_hosts
+  export DOCKER_HOST="ssh://$USER@$IP"
+
+.docker_prepare: &docker_prepare |
+  docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY;
+  docker pull $IMAGE_TAG
+  docker rm --force --volumes $CONTAINER_NAME || echo 'No running prior images'
+  docker rmi -f $(docker images davron112/krakend -q)
+
+variables:
+  DOCKER_DRIVER: overlay2
+  IMAGE_LATEST: $CI_REGISTRY_IMAGE:latest
+  IMAGE_TAG: $CI_REGISTRY_IMAGE:$CI_COMMIT_SHORT_SHA
+  CI_SERVER_HOST: $CI_SERVER_HOST
+  CI_JOB_TOKEN: $CI_JOB_TOKEN
+  GOLANG_VERSION: 1.20.13
+  ALPINE_VERSION: 3.18
+
+build_staging:
+  interruptible: true
+  stage: build
+  only:
+    refs:
+      - main
+      - staging
+  script:
+    - echo "Building image ${IMAGE_TAG}"
+    - >
+      docker build
+      --no-cache
+      --pull
+      --build-arg GOLANG_VERSION
+      --build-arg ALPINE_VERSION
+      --build-arg CI_SERVER_HOST
+      --build-arg CI_JOB_TOKEN
+      -t $IMAGE_TAG
+      -t $IMAGE_LATEST
+      .
+    - >
+      docker login
+      -u $CI_REGISTRY_USER
+      -p $CI_REGISTRY_PASSWORD
+      $CI_REGISTRY
+    - docker push "${IMAGE_TAG}"
+    - docker push "${IMAGE_LATEST}"
+    - docker rmi "${IMAGE_TAG}" "${IMAGE_LATEST}"
+
+deploy_staging:
+  interruptible: true
+  stage: deploy
+  variables:
+    CONTAINER_NAME: landing
+  only:
+    refs:
+      - staging
+      - main
+  environment:
+    name: staging
+  script:
+    - *setup_ssh
+    - *docker_prepare
+    - >
+      docker run
+      -d 
+      --name "${CONTAINER_NAME}"
+      --network traefik
+      --restart unless-stopped
+      $IMAGE_TAG
+
+cleanup_images:
+  stage: cleanup
+  script:
+    - *setup_ssh
+    - >
+      echo "Removing unused Docker images"
+    - >
+      ssh $USER@$IP
+      "
+        docker images | grep 'davron112/krakend' | awk '{print \$3}' | xargs -r -I {} sh -c 'docker rmi -f {} || true';
+        docker images | grep '<none>' | awk '{print \$3}' | xargs -r -I {} sh -c 'docker rmi -f {} || true';
+        docker image prune -af; # Remove all unused images not just dangling ones
+      "
+  only:
+    refs:
+      - staging
+      - main

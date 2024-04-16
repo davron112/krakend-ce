@@ -12,40 +12,37 @@ import (
 	"github.com/go-contrib/uuid"
 	"golang.org/x/sync/errgroup"
 
-	kotel "github.com/krakend/krakend-otel"
-	otellura "github.com/krakend/krakend-otel/lura"
-	otelgin "github.com/krakend/krakend-otel/router/gin"
-	krakendbf "github.com/krakendio/bloomfilter/v2/krakend"
-	asyncamqp "github.com/krakendio/krakend-amqp/v2/async"
-	audit "github.com/krakendio/krakend-audit"
-	cel "github.com/krakendio/krakend-cel/v2"
-	cmd "github.com/krakendio/krakend-cobra/v2"
-	cors "github.com/krakendio/krakend-cors/v2/gin"
-	gelf "github.com/krakendio/krakend-gelf/v2"
-	gologging "github.com/krakendio/krakend-gologging/v2"
-	influxdb "github.com/krakendio/krakend-influx/v2"
-	jose "github.com/krakendio/krakend-jose/v2"
-	logstash "github.com/krakendio/krakend-logstash/v2"
-	metrics "github.com/krakendio/krakend-metrics/v2/gin"
-	opencensus "github.com/krakendio/krakend-opencensus/v2"
-	_ "github.com/krakendio/krakend-opencensus/v2/exporter/datadog"
-	_ "github.com/krakendio/krakend-opencensus/v2/exporter/influxdb"
-	_ "github.com/krakendio/krakend-opencensus/v2/exporter/jaeger"
-	_ "github.com/krakendio/krakend-opencensus/v2/exporter/ocagent"
-	_ "github.com/krakendio/krakend-opencensus/v2/exporter/prometheus"
-	_ "github.com/krakendio/krakend-opencensus/v2/exporter/stackdriver"
-	_ "github.com/krakendio/krakend-opencensus/v2/exporter/xray"
-	_ "github.com/krakendio/krakend-opencensus/v2/exporter/zipkin"
-	pubsub "github.com/krakendio/krakend-pubsub/v2"
-	usage "github.com/krakendio/krakend-usage/v2"
-	"github.com/luraproject/lura/v2/async"
-	"github.com/luraproject/lura/v2/config"
-	"github.com/luraproject/lura/v2/core"
-	"github.com/luraproject/lura/v2/logging"
-	"github.com/luraproject/lura/v2/proxy"
-	router "github.com/luraproject/lura/v2/router/gin"
-	serverhttp "github.com/luraproject/lura/v2/transport/http/server"
-	server "github.com/luraproject/lura/v2/transport/http/server/plugin"
+	krakendbf "api-gateway/v2/modules/bloomfilter/v2/krakend"
+	asyncamqp "api-gateway/v2/modules/krakend-amqp/v2/async"
+	audit "api-gateway/v2/modules/krakend-audit"
+	cel "api-gateway/v2/modules/krakend-cel/v2"
+	cmd "api-gateway/v2/modules/krakend-cobra/v2"
+	cors "api-gateway/v2/modules/krakend-cors/v2/gin"
+	gelf "api-gateway/v2/modules/krakend-gelf/v2"
+	gologging "api-gateway/v2/modules/krakend-gologging/v2"
+	influxdb "api-gateway/v2/modules/krakend-influx/v2"
+	jose "api-gateway/v2/modules/krakend-jose/v2"
+	logstash "api-gateway/v2/modules/krakend-logstash/v2"
+	metrics "api-gateway/v2/modules/krakend-metrics/v2/gin"
+	opencensus "api-gateway/v2/modules/krakend-opencensus/v2"
+	_ "api-gateway/v2/modules/krakend-opencensus/v2/exporter/datadog"
+	_ "api-gateway/v2/modules/krakend-opencensus/v2/exporter/influxdb"
+	_ "api-gateway/v2/modules/krakend-opencensus/v2/exporter/jaeger"
+	_ "api-gateway/v2/modules/krakend-opencensus/v2/exporter/ocagent"
+	_ "api-gateway/v2/modules/krakend-opencensus/v2/exporter/prometheus"
+	_ "api-gateway/v2/modules/krakend-opencensus/v2/exporter/stackdriver"
+	_ "api-gateway/v2/modules/krakend-opencensus/v2/exporter/xray"
+	_ "api-gateway/v2/modules/krakend-opencensus/v2/exporter/zipkin"
+	pubsub "api-gateway/v2/modules/krakend-pubsub/v2"
+	usage "api-gateway/v2/modules/krakend-usage/v2"
+	"api-gateway/v2/modules/lura/v2/async"
+	"api-gateway/v2/modules/lura/v2/config"
+	"api-gateway/v2/modules/lura/v2/core"
+	"api-gateway/v2/modules/lura/v2/logging"
+	"api-gateway/v2/modules/lura/v2/proxy"
+	router "api-gateway/v2/modules/lura/v2/router/gin"
+	serverhttp "api-gateway/v2/modules/lura/v2/transport/http/server"
+	server "api-gateway/v2/modules/lura/v2/transport/http/server/plugin"
 )
 
 // NewExecutor returns an executor for the cmd package. The executor initalizes the entire gateway by
@@ -56,14 +53,8 @@ func NewExecutor(ctx context.Context) cmd.Executor {
 }
 
 // PluginLoader defines the interface for the collaborator responsible of starting the plugin loaders
-// Deprecated: Use PluginLoaderWithContext
 type PluginLoader interface {
 	Load(folder, pattern string, logger logging.Logger)
-}
-
-// PluginLoaderWithContext defines the interface for the collaborator responsible of starting the plugin loaders
-type PluginLoaderWithContext interface {
-	LoadWithContext(ctx context.Context, folder, pattern string, logger logging.Logger)
 }
 
 // SubscriberFactoriesRegister registers all the required subscriber factories from the available service
@@ -132,20 +123,17 @@ type AgentStarter interface {
 
 // ExecutorBuilder is a composable builder. Every injected property is used by the NewCmdExecutor method.
 type ExecutorBuilder struct {
-	// PluginLoader is deprecated: Use PluginLoaderWithContext
-	PluginLoader                PluginLoader
-	PluginLoaderWithContext     PluginLoaderWithContext
 	LoggerFactory               LoggerFactory
+	PluginLoader                PluginLoader
 	SubscriberFactoriesRegister SubscriberFactoriesRegister
 	TokenRejecterFactory        TokenRejecterFactory
 	MetricsAndTracesRegister    MetricsAndTracesRegister
 	EngineFactory               EngineFactory
-
-	ProxyFactory        ProxyFactory
-	BackendFactory      BackendFactory
-	HandlerFactory      HandlerFactory
-	RunServerFactory    RunServerFactory
-	AgentStarterFactory AgentStarter
+	ProxyFactory                ProxyFactory
+	BackendFactory              BackendFactory
+	HandlerFactory              HandlerFactory
+	RunServerFactory            RunServerFactory
+	AgentStarterFactory         AgentStarter
 
 	Middlewares []gin.HandlerFunc
 }
@@ -173,13 +161,10 @@ func (e *ExecutorBuilder) NewCmdExecutor(ctx context.Context) cmd.Executor {
 		}
 
 		if cfg.Plugin != nil {
-			e.PluginLoaderWithContext.LoadWithContext(ctx, cfg.Plugin.Folder, cfg.Plugin.Pattern, logger)
+			e.PluginLoader.Load(cfg.Plugin.Folder, cfg.Plugin.Pattern, logger)
 		}
 
 		metricCollector := e.MetricsAndTracesRegister.Register(ctx, cfg, logger)
-		if metricsAndTracesCloser, ok := e.MetricsAndTracesRegister.(io.Closer); ok {
-			defer metricsAndTracesCloser.Close()
-		}
 
 		// Initializes the global cache for the JWK clients if enabled in the config
 		if err := jose.SetGlobalCacher(logger, cfg.ExtraConfig); err != nil && err != jose.ErrNoValidatorCfg {
@@ -195,17 +180,13 @@ func (e *ExecutorBuilder) NewCmdExecutor(ctx context.Context) cmd.Executor {
 			logger.Warning("[SERVICE: Bloomfilter]", err.Error())
 		}
 
-		bpf := e.BackendFactory.NewBackendFactory(ctx, logger, metricCollector)
-		pf := e.ProxyFactory.NewProxyFactory(logger, bpf, metricCollector)
+		pf := e.ProxyFactory.NewProxyFactory(
+			logger,
+			e.BackendFactory.NewBackendFactory(ctx, logger, metricCollector),
+			metricCollector,
+		)
 
 		agentPing := make(chan string, len(cfg.AsyncAgents))
-
-		handlerF := e.HandlerFactory.NewHandlerFactory(logger, metricCollector, tokenRejecterFactory)
-		handlerF = otelgin.New(handlerF)
-
-		runServerChain := serverhttp.RunServerWithLoggerFactory(logger)
-		runServerChain = otellura.GlobalRunServer(logger, runServerChain)
-		runServerChain = router.RunServerFunc(e.RunServerFactory.NewRunServer(logger, runServerChain))
 
 		// setup the krakend router
 		routerFactory := router.NewFactory(router.Config{
@@ -217,8 +198,8 @@ func (e *ExecutorBuilder) NewCmdExecutor(ctx context.Context) cmd.Executor {
 			ProxyFactory:   pf,
 			Middlewares:    e.Middlewares,
 			Logger:         logger,
-			HandlerFactory: handlerF,
-			RunServer:      runServerChain,
+			HandlerFactory: e.HandlerFactory.NewHandlerFactory(logger, metricCollector, tokenRejecterFactory),
+			RunServer:      router.RunServerFunc(e.RunServerFactory.NewRunServer(logger, serverhttp.RunServerWithLoggerFactory(logger))),
 		})
 
 		// start the engines
@@ -256,9 +237,6 @@ func (e *ExecutorBuilder) NewCmdExecutor(ctx context.Context) cmd.Executor {
 func (e *ExecutorBuilder) checkCollaborators() {
 	if e.PluginLoader == nil {
 		e.PluginLoader = new(pluginLoader)
-	}
-	if e.PluginLoaderWithContext == nil {
-		e.PluginLoaderWithContext = new(pluginLoader)
 	}
 	if e.SubscriberFactoriesRegister == nil {
 		e.SubscriberFactoriesRegister = new(registerSubscriberFactories)
@@ -374,12 +352,10 @@ func (BloomFilterJWT) NewTokenRejecter(ctx context.Context, cfg config.ServiceCo
 }
 
 // MetricsAndTraces is the default implementation of the MetricsAndTracesRegister interface.
-type MetricsAndTraces struct {
-	shutdownFn func()
-}
+type MetricsAndTraces struct{}
 
 // Register registers the metrics, influx and opencensus packages as required by the given configuration.
-func (m *MetricsAndTraces) Register(ctx context.Context, cfg config.ServiceConfig, l logging.Logger) *metrics.Metrics {
+func (MetricsAndTraces) Register(ctx context.Context, cfg config.ServiceConfig, l logging.Logger) *metrics.Metrics {
 	metricCollector := metrics.New(ctx, cfg.ExtraConfig, l)
 
 	if err := influxdb.New(ctx, cfg.ExtraConfig, metricCollector, l); err != nil {
@@ -398,19 +374,7 @@ func (m *MetricsAndTraces) Register(ctx context.Context, cfg config.ServiceConfi
 		l.Debug("[SERVICE: OpenCensus] Service correctly registered")
 	}
 
-	if shutdownFn, err := kotel.Register(ctx, l, cfg); err == nil {
-		m.shutdownFn = shutdownFn
-	} else {
-		l.Error(fmt.Sprintf("[SERVICE: OpenTelemetry] cannot register exporters: %s", err.Error()))
-	}
-
 	return metricCollector
-}
-
-func (m *MetricsAndTraces) Close() {
-	if m.shutdownFn != nil {
-		m.shutdownFn()
-	}
 }
 
 const (

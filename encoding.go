@@ -1,10 +1,10 @@
 package krakend
 
 import (
-	rss "github.com/krakendio/krakend-rss/v2"
-	xml "github.com/krakendio/krakend-xml/v2"
-	ginxml "github.com/krakendio/krakend-xml/v2/gin"
-	"github.com/luraproject/lura/v2/router/gin"
+	rss "api-gateway/v2/modules/krakend-rss/v2"
+	xml "api-gateway/v2/modules/krakend-xml/v2"
+	ginxml "api-gateway/v2/modules/krakend-xml/v2/gin"
+	"api-gateway/v2/modules/lura/v2/router/gin"
 )
 
 // RegisterEncoders registers all the available encoders

@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/krakendio/krakend-ce/v2/tests"
+	"api-gateway/v2/tests"
 )
 
 func main() {

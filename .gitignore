@@ -1,7 +1,12 @@
 /vendor
 bench_res
 sec_scan
-krakend
 krakend-alpine
 cmd/krakend-integration/krakend-integration
 tests/fixtures/krakend.json.final
+.idea/
+.DS_Store
+/krakend
+/krakend.json
+.env
+api-gateway

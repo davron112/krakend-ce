@@ -1,0 +1,87 @@
+{
+    "$schema": "https://www.krakend.io/schema/v2.6/krakend.json",
+    "version": 3,
+    "name": "API Gateway",
+    "port": 8080,
+    "timeout": "20000ms",
+    "cache_ttl": "0s",
+    "plugin": {
+        "pattern": ".so",
+        "folder": "./plugins/shared-objects"
+    },
+    "endpoints": [
+        {
+            "@comment": "Test",
+            "endpoint": "/test",
+            "output_encoding": "json",
+            "method": "GET",
+            "input_headers": ["*"],
+            "input_query_strings": ["*"],
+            "backend": [
+                {
+                    "host": ["http://test.local"],
+                    "url_pattern": "/test",
+                    "encoding": "json"
+                }
+            ]
+        }
+    ],
+    "sequential_start": true,
+    "extra_config": {
+        "router": {
+            "return_error_msg": true
+        },
+        "telemetry/metrics": {
+            "collection_time": "30s",
+            "listen_address": ":${METRICS_PORT}"
+        },
+        "telemetry/influx": {
+            "address": "${INFLUXDB_HOST}",
+            "ttl": "25s",
+            "buffer_size": 100,
+            "username": "${INFLUXDB_USER}",
+            "password": "${INFLUXDB_USER_PASSWORD}"
+        },
+        "telemetry/logging": {
+            "level": "DEBUG",
+            "prefix": "[GATEWAY]",
+            "syslog": false,
+            "stdout": true
+        },
+        "telemetry/gelf": {
+            "address": "${LOGSTASH_UDP_HOST}",
+            "enable_tcp": false
+        },
+        "telemetry/opencensus": {
+            "sample_rate": 100,
+            "reporting_period": 1,
+            "enabled_layers": {
+                "backend": true,
+                "router": true
+            },
+            "exporters": {
+                "jaeger": {
+                    "endpoint": "${JAEGER_HOST}",
+                    "service_name": "${JAEGER_SERVICE_NAME}"
+                }
+            }
+        },
+        "security/cors": {
+            "allow_origins": [
+                "*"
+            ],
+            "allow_methods": [
+                "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
+            ],
+            "expose_headers": [
+               
+            ],
+            "allow_headers": [
+                "*"
+            ],
+            "allow_credentials": true,
+            "access-control-allow-origin": ["*"],
+            "max_age": "48h"
+        }
+    }
+}

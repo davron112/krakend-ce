@@ -1,0 +1,154 @@
+version: "3.7"
+services:
+  gateway:
+    image: davron112/krakend:2.6.0
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.gateway.rule=Host(`${GATEWAY_DOMAIN}`)"
+      - "traefik.http.services.gateway.loadbalancer.server.port=8080"
+    volumes:
+      - ./krakend.json:/etc/krakend/krakend.json
+      - ./plugins/shared-objects:/etc/krakend/plugins/shared-objects
+    ports:
+      - "${GATEWAY_PORT}:8080"
+      - "${HTTPS_PORT}:8080"
+      - "${METRICS_PORT}:8090"
+    command: [ "run", "-d", "-c", "/etc/krakend/krakend.json" ]
+    networks:
+      - traefik
+
+  grafana:
+    image: grafana/grafana:9.1.2
+    ports:
+      - "${GRAFANA_PORT}:3000"
+    depends_on:
+      - influxdb
+    volumes:
+      - "./docker/grafana/datasources/all.yml:/etc/grafana/provisioning/datasources/all.yml"
+      - "./docker/grafana/dashboards/all.yml:/etc/grafana/provisioning/dashboards/all.yml"
+      - "./docker/grafana/gateway:/var/lib/grafana/dashboards/gateway"
+      - "${VOLUME_DATA}/grafana-data:/var/lib/grafana" # Persistent data volume for Grafana
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.grafana.rule=Host(`${GRAFANA_DOMAIN}`)"
+      - "traefik.http.services.grafana.loadbalancer.server.port=3000"
+    networks:
+      - traefik
+
+  influxdb:
+    image: influxdb:1.8.10
+    environment:
+      - "INFLUXDB_DB=${INFLUXDB_DB}"
+      - "INFLUXDB_USER=${INFLUXDB_USER}"
+      - "INFLUXDB_USER_PASSWORD=${INFLUXDB_USER_PASSWORD}"
+      - "INFLUXDB_ADMIN_USER=${INFLUXDB_ADMIN_USER}"
+      - "INFLUXDB_ADMIN_PASSWORD=${INFLUXDB_ADMIN_PASSWORD}"
+    ports:
+      - "${INFLUXDB_PORT}:8086"
+    volumes:
+      - "${VOLUME_DATA}/influxdb-data:/var/lib/influxdb" # Persistent data volume for InfluxDB
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.influxdb.rule=Host(`${INFLUXDB_DOMAIN}`)"
+      - "traefik.http.services.influxdb.loadbalancer.server.port=8086"
+    networks:
+      - traefik
+
+  jaeger:
+    image: jaegertracing/all-in-one:1
+    ports:
+      - "${JAEGER_UI_PORT}:16686"
+      - "${JAEGER_API_PORT}:14268"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.jaeger.rule=Host(`${JAEGER_DOMAIN}`)"
+      - "traefik.http.services.jaeger.loadbalancer.server.port=16686"
+    networks:
+      - traefik
+
+  elasticsearch:
+    image: elasticsearch:8.4.1
+    environment:
+      - "discovery.type=single-node"
+      - "xpack.security.enabled=false"
+      - "xpack.security.transport.ssl.enabled=false"
+      - "xpack.security.http.ssl.enabled=false"
+    ports:
+      - "${ELASTICSEARCH_PORT}:9200"
+      - "${ELASTICSEARCH_SECOND_PORT}:9300"
+    volumes:
+      - "${VOLUME_DATA}/elasticsearch-data:/usr/share/elasticsearch/data" # Persistent data volume for Elasticsearch
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.elasticsearch.rule=Host(`${ELASTICSEARCH_DOMAIN}`)"
+      - "traefik.http.services.elasticsearch.loadbalancer.server.port=9200"
+    networks:
+      - traefik
+
+  kibana:
+    image: kibana:8.4.1
+    ports:
+      - "${KIBANA_PORT}:5601"
+    depends_on:
+      - elasticsearch
+      - logstash
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.kibana.rule=Host(`${KIBANA_DOMAIN}`)"
+      - "traefik.http.services.kibana.loadbalancer.server.port=5601"
+    networks:
+      - traefik
+
+  logstash:
+    image: logstash:8.4.1
+    ports:
+      - "${LOGSTASH_UDP_PORT}:12201/udp"
+      - "${LOGSTASH_API_PORT}:5044"
+    environment:
+      - "xpack.monitoring.elasticsearch.url=http://elasticsearch:9200"
+    volumes:
+      - "./docker/logstash/logstash.conf:/usr/share/logstash/pipeline/logstash.conf"
+      - "${VOLUME_DATA}/logstash-data:/usr/share/logstash/data" # Persistent data volume for Logstash (if needed)
+    command: ["-f", "/usr/share/logstash/pipeline/logstash.conf"]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.logstash.rule=Host(`${LOGSTASH_DOMAIN}`)"
+      - "traefik.http.services.logstash.loadbalancer.server.port=5044"
+    networks:
+      - traefik
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "${RABBITMQ_DASHBOARD_PORT}:15672"
+      - "${RABBITMQ_API_PORT}:5672"
+    volumes:
+      - "${VOLUME_DATA}/rabbitmq-data:/var/lib/rabbitmq" # Persistent data volume for RabbitMQ
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.rabbitmq.rule=Host(`${RABBITMQ_DOMAIN}`)"
+      - "traefik.http.services.rabbitmq.loadbalancer.server.port=15672"
+    networks:
+      - traefik
+
+  traefik:
+    image: traefik:v2.10
+    restart: always
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--providers.docker.exposedbydefault=false"
+      - "--entrypoints.web.address=:80"
+    ports:
+      - "${TRAEFIK_PORT}:80"
+      - "${TRAEFIK_DASHBOARD_PORT}:8080"
+    volumes:
+      - "${VOLUME_DATA}/.traefik:/letsencrypt"
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+    networks:
+      - traefik
+
+networks:
+  traefik:
+    external: true
