@@ -1,7 +1,7 @@
 version: "3.7"
 services:
   gateway:
-    image: davron112/krakend:2.6.0
+    image: achilov21/krakend:0.0.2
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.gateway.rule=Host(`${GATEWAY_DOMAIN}`)"
