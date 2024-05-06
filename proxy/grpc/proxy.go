@@ -3,6 +3,7 @@ package grpc
 import (
 	"context"
 	"api-gateway/v2/modules/lura/v2/logging"
+	"github.com/golang/protobuf/jsonpb"
 	"net/url"
 
 	"github.com/jhump/protoreflect/dynamic"
@@ -64,7 +65,7 @@ func (p *Proxy) Call(ctx context.Context, serviceName, methodName string, messag
 		return nil, errors.Wrap(err, "response from backend could not be converted internally")
 	}
 
-	m, err := outputMessage.MarshalJSON()
+	m, err := outputMessage.MarshalJSONPB(&jsonpb.Marshaler{EnumsAsInts: true, EmitDefaults: true})
 	if err != nil {
 		return nil, err
 	}
