@@ -19,6 +19,16 @@ RUN apk add --no-cache ca-certificates tzdata && \
     mkdir /etc/krakend && \
     echo '{ "version": 3 }' > /etc/krakend/krakend.json
 
+RUN apk add --no-cache --virtual .build-deps \
+        gcc \
+        musl-dev \
+        openssl-dev \
+        lua5.1-dev \
+        luarocks5.1 \
+    && luarocks-5.1 install dkjson \
+    && luarocks-5.1 install lua-cjson \
+    && apk del .build-deps
+
 COPY --from=builder /app/krakend /usr/bin/krakend
 
 USER 1000
