@@ -18,7 +18,7 @@ import (
 )
 
 const (
-	Namespace      = "api-gateway/v2/modules/grpc"
+	Namespace      = "github.com/davron112/grpc"
 	EncodingPrefix = "grpc-"
 )
 
@@ -42,22 +42,19 @@ func RoundRobinHostSelector(hosts []string) func() string {
 
 // ErrorResponse to encapsulate an error response
 type ErrorResponse struct {
-	StatusCode int
-	Message    string
+	StatusCode int    `json:"status_code"`
+	Message    string `json:"message"`
 }
 
 // IsGrpcMethod checks if the given backend configuration is designated for gRPC.
 func IsGrpcMethod(remote *config.Backend) bool {
-	// List of potential keys that signify a gRPC backend.
-	grpcKeys := []string{"backend/grpc", "api-gateway/v2/modules/grpc"}
+	grpcKeys := []string{"backend/grpc", "github.com/davron112/grpc"}
 
-	// Check if any of the keys exist in the ExtraConfig map.
 	for _, key := range grpcKeys {
 		if _, exists := remote.ExtraConfig[key]; exists {
 			return true
 		}
 	}
-
 	return false
 }
 
@@ -65,8 +62,7 @@ func NewGrpcBackendFactory(logger logging.Logger, bf proxy.BackendFactory) proxy
 
 	return func(remote *config.Backend) proxy.Proxy {
 		next := bf(remote)
-		ok := IsGrpcMethod(remote)
-		if !ok {
+		if !IsGrpcMethod(remote) {
 			return next
 		}
 
@@ -77,48 +73,42 @@ func NewGrpcBackendFactory(logger logging.Logger, bf proxy.BackendFactory) proxy
 			ctx, cancel := context.WithTimeout(requestCtx, timeoutDuration)
 			defer cancel()
 
-			// Prepare host
 			hostURL, err := url.Parse(trimPrefixes(getNextHost()))
 			if err != nil {
 				logger.Error("URL parsing error: ", err)
-				return nil, utils.NewHTTPError(500, "URL parsing error")
+				return createErrorResponse(500, "URL parsing error"), nil
 			}
 
 			grpcProxy := NewProxy()
 			if err := grpcProxy.Connect(ctx, hostURL, logger); err != nil {
 				logger.Error("Failed to connect: ", err)
-				return nil, utils.NewHTTPError(500, "Failed to connect")
+				return createErrorResponse(500, "Failed to connect"), nil
 			}
 
-			// Read request data
 			bodyBytes, err := io.ReadAll(req.Body)
 			req.Body.Close()
 			if err != nil {
 				logger.Error("Failed to read request body: ", err)
-				return nil, utils.NewHTTPError(500, "Failed to read request body")
+				return createErrorResponse(500, "Failed to read request body"), nil
 			}
 
-			// Prepare URLPatter
 			serviceName, methodName, err := parseURLPattern(remote.URLPattern)
 			if err != nil {
 				logger.Error(err.Error())
-				return nil, utils.NewHTTPError(400, err.Error())
+				return createErrorResponse(400, err.Error()), nil
 			}
 
-			// Send request
-			fmt.Println(serviceName, methodName, "serviceName, methodName")
-			md := metadata.New(nil) // Send metadata here, if needed
+			md := metadata.New(nil)
 			responseBytes, err := grpcProxy.Call(ctx, serviceName, methodName, bodyBytes, &md)
 			if err != nil {
 				logger.Error("gRPC call failed: ", err)
-				return nil, utils.NewHTTPError(500, "gRPC call failed")
+				return createErrorResponse(500, err.Error()), nil
 			}
 
-			// Prepare json response
 			var responseData map[string]interface{}
 			if err := json.Unmarshal(responseBytes, &responseData); err != nil {
 				logger.Error("Failed to unmarshal JSON data into map: ", err)
-				return nil, utils.NewHTTPError(500, "Failed to unmarshal JSON data into map")
+				return createErrorResponse(500, "Failed to unmarshal JSON data into map"), nil
 			}
 
 			return &proxy.Response{
@@ -130,20 +120,28 @@ func NewGrpcBackendFactory(logger logging.Logger, bf proxy.BackendFactory) proxy
 }
 
 func parseURLPattern(urlPattern string) (serviceName, methodName string, err error) {
-	// Ensure the URL pattern starts with a slash ("/").
 	if !strings.HasPrefix(urlPattern, "/") {
 		return "", "", errors.New("URL pattern must start with a '/'")
 	}
 
-	// Split the URL pattern by slash ("/") to separate components.
 	parts := strings.Split(urlPattern, "/")
-	// Expecting three parts: an empty string (due to leading slash), the service name, and the method name.
 	if len(parts) != 3 {
 		return "", "", errors.New("Invalid URL pattern format. Expected format: /ServiceName/MethodName")
 	}
 
-	// Assign and return the service and method names.
 	serviceName = parts[1]
 	methodName = parts[2]
 	return serviceName, methodName, nil
 }
+
+func createErrorResponse(statusCode int, message string) *proxy.Response {
+	responseData := map[string]interface{}{
+		"msg":    message,
+	}
+	return &proxy.Response{
+		Data:       responseData,
+		IsComplete: false,
+		Metadata:   proxy.Metadata{StatusCode: statusCode},
+	}
+}
+
