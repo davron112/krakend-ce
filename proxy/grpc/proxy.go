@@ -2,7 +2,9 @@ package grpc
 
 import (
 	"context"
+	"encoding/json"
 	"api-gateway/v2/modules/lura/v2/logging"
+	"github.com/davron112/lura/v2/utils"
 	"github.com/golang/protobuf/jsonpb"
 	"net/url"
 
@@ -11,7 +13,6 @@ import (
 	"github.com/jhump/protoreflect/grpcreflect"
 	"github.com/pkg/errors"
 	"google.golang.org/grpc"
-	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
 	rpb "google.golang.org/grpc/reflection/grpc_reflection_v1alpha"
@@ -52,11 +53,9 @@ func (p *Proxy) Call(ctx context.Context, serviceName, methodName string, messag
 	output, err := p.stub.InvokeRpc(ctx, invocation.MethodDescriptor, invocation.Message, grpc.Header(md))
 	if err != nil {
 		stat := status.Convert(err)
-		if stat.Code() == codes.Unavailable {
-			return nil, errors.Wrap(err, "could not connect to backend")
-		}
-
-		return nil, errors.Wrap(err, stat.Message())
+		grpcError := utils.NewHTTPError(int(stat.Code()), stat.Message())
+		grpcErrorJson, _ := json.Marshal(grpcError)
+		return grpcErrorJson, grpcError
 	}
 
 	outputMessage := dynamic.NewMessage(invocation.MethodDescriptor.GetOutputType())
