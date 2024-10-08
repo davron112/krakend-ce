@@ -97,9 +97,6 @@ func validateJWT(cfg *Config, req *http.Request, l logging.Logger) (int, string)
 
 	tokenValue := headers.Get(cfg.AccessTokenHeaderKey)
 	if tokenValue == "" {
-		return 0, "" // continue if auth is not required and no auth header
-	}
-	if tokenValue == "" {
 		return http.StatusUnauthorized, "Unauthorized: Authentication is required and has failed or has not yet been provided."
 	}
 
