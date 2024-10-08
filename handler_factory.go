@@ -1,7 +1,6 @@
 package krakend
 
 import (
-	"fmt"
 	botdetector "api-gateway/v2/modules/krakend-botdetector/v2/gin"
 	jose "api-gateway/v2/modules/krakend-jose/v2"
 	ginjose "api-gateway/v2/modules/krakend-jose/v2/gin"
@@ -14,6 +13,8 @@ import (
 	"api-gateway/v2/modules/lura/v2/proxy"
 	router "api-gateway/v2/modules/lura/v2/router/gin"
 	"api-gateway/v2/modules/lura/v2/transport/http/server"
+	"api-gateway/v2/pkg/jwtvalidator"
+	"fmt"
 
 	"github.com/gin-gonic/gin"
 )
@@ -27,6 +28,7 @@ func NewHandlerFactory(logger logging.Logger, metricCollector *metrics.Metrics, 
 	handlerFactory = metricCollector.NewHTTPHandlerFactory(handlerFactory)
 	handlerFactory = opencensus.New(handlerFactory)
 	handlerFactory = botdetector.New(handlerFactory, logger)
+	handlerFactory = jwtvalidator.New(handlerFactory, logger)
 
 	return func(cfg *config.EndpointConfig, p proxy.Proxy) gin.HandlerFunc {
 		logger.Debug(fmt.Sprintf("[ENDPOINT: %s] Building the http handler", cfg.Endpoint))

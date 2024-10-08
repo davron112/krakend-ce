@@ -74,7 +74,7 @@
                 "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
             ],
             "expose_headers": [
-               
+
             ],
             "allow_headers": [
                 "*"

@@ -1,14 +1,13 @@
 package grpc
 
 import (
+	"api-gateway/v2/modules/lura/v2/config"
+	"api-gateway/v2/modules/lura/v2/logging"
+	"api-gateway/v2/modules/lura/v2/proxy"
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"api-gateway/v2/modules/lura/v2/config"
-	"api-gateway/v2/modules/lura/v2/logging"
-	"api-gateway/v2/modules/lura/v2/proxy"
-	"api-gateway/v2/modules/lura/v2/utils"
 	"google.golang.org/grpc/metadata"
 	"io"
 	"net/url"
@@ -136,7 +135,7 @@ func parseURLPattern(urlPattern string) (serviceName, methodName string, err err
 
 func createErrorResponse(statusCode int, message string) *proxy.Response {
 	responseData := map[string]interface{}{
-		"msg":    message,
+		"msg": message,
 	}
 	return &proxy.Response{
 		Data:       responseData,
@@ -144,4 +143,3 @@ func createErrorResponse(statusCode int, message string) *proxy.Response {
 		Metadata:   proxy.Metadata{StatusCode: statusCode},
 	}
 }
-

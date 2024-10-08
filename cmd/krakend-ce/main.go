@@ -1,13 +1,13 @@
 package main
 
 import (
-	"context"
+	krakend "api-gateway/v2"
 	cmd "api-gateway/v2/modules/krakend-cobra/v2"
 	flexibleconfig "api-gateway/v2/modules/krakend-flexibleconfig/v2"
 	viper "api-gateway/v2/modules/krakend-viper/v2"
 	"api-gateway/v2/modules/lura/v2/config"
+	"context"
 	"log"
-	krakend "api-gateway/v2"
 	"os"
 	"os/signal"
 	"syscall"
@@ -58,11 +58,11 @@ func main() {
 }
 
 var aliases = map[string]string{
-	"github_com/davron112/lure/transport/http/server/handler":  "plugin/http-server",
+	"github_com/davron112/lure/transport/http/server/handler":    "plugin/http-server",
 	"api-gateway/v2/modules/lura/transport/http/client/executor": "plugin/http-client",
 	"api-gateway/v2/modules/lura/proxy/plugin":                   "plugin/req-resp-modifier",
 	"api-gateway/v2/modules/lura/proxy":                          "proxy",
-	"github_com/davron112/lura/router/gin":                     "router",
+	"github_com/davron112/lura/router/gin":                       "router",
 
 	"api-gateway/v2/modules/krakend-httpcache":                "qos/http-cache",
 	"api-gateway/v2/modules/krakend-circuitbreaker/gobreaker": "qos/circuit-breaker",
@@ -70,7 +70,8 @@ var aliases = map[string]string{
 	"api-gateway/v2/modules/krakend-oauth2-clientcredentials": "auth/client-credentials",
 	"api-gateway/v2/modules/krakend-jose/validator":           "auth/validator",
 	"api-gateway/v2/modules/krakend-jose/signer":              "auth/signer",
-	"github_com/davron112/bloomfilter":                      "auth/revoker",
+	"github_com/davron112/bloomfilter":                        "auth/revoker",
+	"github_com/davron112/jwtvalidator":                       "auth/jwtvalidator",
 
 	"github_com/davron112/krakend-botdetector": "security/bot-detector",
 	"github_com/davron112/krakend-httpsecure":  "security/http",
@@ -92,7 +93,7 @@ var aliases = map[string]string{
 
 	"github_com/davron112/krakend-gelf":       "telemetry/gelf",
 	"github_com/davron112/krakend-gologging":  "telemetry/logging",
-	"api-gateway/v2/modules/krakend-logstash":   "telemetry/logstash",
+	"api-gateway/v2/modules/krakend-logstash": "telemetry/logstash",
 	"github_com/davron112/krakend-metrics":    "telemetry/metrics",
 	"github_com/davron112/krakend-influx":     "telemetry/influx",
 	"github_com/davron112/krakend-opencensus": "telemetry/opencensus",

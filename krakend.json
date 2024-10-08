@@ -33,14 +33,14 @@
         },
         "telemetry/metrics": {
             "collection_time": "30s",
-            "listen_address": ":8090"
+            "listen_address": ":${METRICS_PORT}"
         },
         "telemetry/influx": {
             "address": "http://localhost:8086",
             "ttl": "25s",
             "buffer_size": 100,
             "username": "user",
-            "password": "jh890IjBnWdoPQwNVVtN"
+            "password": ""
         },
         "telemetry/logging": {
             "level": "DEBUG",
@@ -74,7 +74,7 @@
                 "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"
             ],
             "expose_headers": [
-               
+
             ],
             "allow_headers": [
                 "*"
