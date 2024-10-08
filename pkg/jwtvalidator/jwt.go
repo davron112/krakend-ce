@@ -139,6 +139,7 @@ func validateJWT(cfg *Config, req *http.Request, l logging.Logger) (int, string)
 	})
 
 	if err != nil {
+		fmt.Println(err)
 		return http.StatusUnauthorized, "Unauthorized: Authentication is required and has failed or has not yet been provided."
 	}
 
