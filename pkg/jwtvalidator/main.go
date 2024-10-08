@@ -47,11 +47,9 @@ func middleware(cfg *Config, l logging.Logger) gin.HandlerFunc {
 		statusCode, errMsg := validateJWT(cfg, c.Request, l)
 		if statusCode != 0 {
 			c.AbortWithStatusJSON(statusCode, gin.H{
-				"success": false,
 				"error": gin.H{
 					"msg": errMsg,
 				},
-				"detail": nil,
 			})
 			return
 		}
@@ -65,11 +63,9 @@ func handler(cfg *Config, next gin.HandlerFunc, l logging.Logger) gin.HandlerFun
 		statusCode, errMsg := validateJWT(cfg, c.Request, l)
 		if statusCode != 0 {
 			c.AbortWithStatusJSON(statusCode, gin.H{
-				"success": false,
 				"error": gin.H{
 					"msg": errMsg,
 				},
-				"detail": nil,
 			})
 			return
 		}

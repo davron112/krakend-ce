@@ -27,7 +27,7 @@ type JWKS struct {
 }
 
 type JWK struct {
-	Kid string `json:"kid"`
+	Kid string `json:"tid"`
 	Kty string `json:"kty"`
 	Alg string `json:"alg"`
 	Use string `json:"use"`
@@ -117,7 +117,7 @@ func validateJWT(cfg *Config, req *http.Request, l logging.Logger) (int, string)
 		UserID    string   `json:"sub"`
 		SessionID string   `json:"jti"`
 		Roles     []string `json:"roles"`
-		TokenType string   `json:"token_type"`
+		TokenType string   `json:"authenticationType"`
 		jwt.RegisteredClaims
 	}
 
@@ -134,9 +134,9 @@ func validateJWT(cfg *Config, req *http.Request, l logging.Logger) (int, string)
 			return nil, errors.New("unexpected signing method")
 		}
 
-		keyID, ok := token.Header["kid"].(string)
+		keyID, ok := token.Header["tid"].(string)
 		if !ok {
-			return nil, errors.New("kid header not found in token")
+			return nil, errors.New("tid header not found in token")
 		}
 
 		jwk, err := getJWK(keyID, cfg.JWKSURL)
