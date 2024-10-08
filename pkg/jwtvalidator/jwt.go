@@ -95,20 +95,14 @@ func validateJWT(cfg *Config, req *http.Request, l logging.Logger) (int, string)
 		return http.StatusBadRequest, "Invalid request headers"
 	}
 
-	tokenValue := headers.Get(cfg.AccessTokenHeaderKey)
-	if tokenValue == "" {
-		return http.StatusUnauthorized, "Unauthorized: Authentication is required and has failed or has not yet been provided."
-	}
+	tokenValue := headers.Get("Authorization")
+	fmt.Println(tokenValue, "tokenValue")
 
-	if cfg.AccessTokenHeaderKey == "Authorization" {
-		tokenParts := strings.Split(tokenValue, " ")
-		if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-			return http.StatusBadRequest, "Authorization header format must be 'Bearer {token}'"
-		}
-		tokenString = tokenParts[1]
-	} else {
-		tokenString = tokenValue
+	tokenParts := strings.Split(tokenValue, " ")
+	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
+		return http.StatusBadRequest, "Authorization header format must be 'Bearer {token}'"
 	}
+	tokenString = tokenParts[1]
 
 	type CustomClaims struct {
 		UserID    string   `json:"sub"`
