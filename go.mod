@@ -18,7 +18,6 @@ require (
 	github.com/catalinc/hashcash v0.0.0-20161205220751-e6bc29ff4de9
 	github.com/clbanning/mxj v1.8.4
 	github.com/davron112/lura/v2 v2.8.0
-	github.com/elliotchance/phpserialize v1.4.0
 	github.com/fatih/color v1.16.0
 	github.com/gin-gonic/gin v1.9.1
 	github.com/go-contrib/uuid v1.2.0

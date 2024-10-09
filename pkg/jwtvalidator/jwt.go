@@ -167,6 +167,7 @@ func validateJWT(cfg *Config, req *http.Request, l logging.Logger) (int, string)
 			}
 		}
 
+		fmt.Println(claims, "claims")
 		req.Header.Set("X-User-Id", claims.UserID)
 		req.Header.Set("X-Session-Id", claims.SessionID)
 		return 0, ""
