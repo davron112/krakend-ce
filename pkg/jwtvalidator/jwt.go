@@ -100,7 +100,7 @@ func validateJWT(cfg *Config, req *http.Request, l logging.Logger) (int, string)
 
 	tokenParts := strings.Split(tokenValue, " ")
 	if len(tokenParts) != 2 || tokenParts[0] != "Bearer" {
-		return http.StatusBadRequest, "Authorization header format must be 'Bearer {token}'"
+		return http.StatusUnauthorized, "Authorization header format must be 'Bearer {token}'"
 	}
 	tokenString = tokenParts[1]
 
